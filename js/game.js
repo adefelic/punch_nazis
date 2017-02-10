@@ -12,8 +12,10 @@ var clock = new THREE.Clock();
 var loader = new THREE.TextureLoader();
 var world_mesh;
 var actors = [];
-var render_order = 1000; // this is a hack
-var actor_material1, actor_material2;
+var render_order = Number.MAX_SAFE_INTEGER; // this is a hack
+var actor_materials = [];
+var misses = 0;
+var hits = 0;
 
 init();
 animate();
@@ -26,7 +28,7 @@ function init() {
 	// Camera
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, .4, 300);
 	camera.position.x = 0;
-	camera.position.y = 98.2;
+	camera.position.y = 97.6;
 	camera.position.z = 25;
 
 	// Renderer
@@ -61,24 +63,26 @@ function init() {
 	scene.add(sky_mesh);
 
 	// Actor meshes
+	// it would be fun to give different ones different behaviors
 	var actor_tex1 = loader.load('textures/nazi1a.png');
-	actor_material1 = new THREE.MeshBasicMaterial( { map: actor_tex1, transparent: true, depthWrite: false } );
-	var actor_tex2 = loader.load('textures/nazi2a.png'); 
-	actor_material2 = new THREE.MeshBasicMaterial( { map: actor_tex2, transparent: true, depthWrite: false } );
+	var actor_tex2 = loader.load('textures/nazi1b.png');
+	var actor_tex3 = loader.load('textures/nazi2a.png');
+	var actor_tex4 = loader.load('textures/nazi2b.png');
+	actor_materials.push(new THREE.MeshBasicMaterial( { map: actor_tex1, transparent: true, depthWrite: false, side: THREE.DoubleSide } ));
+	actor_materials.push(new THREE.MeshBasicMaterial( { map: actor_tex2, transparent: true, depthWrite: false, side: THREE.DoubleSide } ));
+	actor_materials.push(new THREE.MeshBasicMaterial( { map: actor_tex3, transparent: true, depthWrite: false, side: THREE.DoubleSide } ));
+	actor_materials.push(new THREE.MeshBasicMaterial( { map: actor_tex4, transparent: true, depthWrite: false, side: THREE.DoubleSide } ));
 }
 
 function newActor() {
-	var material;
-	// i should make different types behave differently
-	if (Math.random() < .5) {
-		// tall
-		material = actor_material1;
-	} else {
-		// short
-		material = actor_material2;
-	}
-	actors.push(new Actor(new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.6), material), render_order--, scene));
-	if (render_order == 0) render_order = 1000;
+	actors.push(
+		new Actor(
+			new THREE.Mesh(
+				new THREE.PlaneGeometry(1, 1),
+				actor_materials[Math.floor((Math.random() * 4))]
+			), 
+		render_order--, scene));
+	if (render_order == 0) render_order = Number.MAX_SAFE_INTEGER;
 }
 
 function animate() {
@@ -114,12 +118,25 @@ function update() {
 			actors[i].lateralSpeed *= -1;
 		}
 
-		// if the character has moved past the near plane, deallocate them
-		if (actors[i].mesh.rotation.x >= .3) {
+		// punch left
+		// punch center
+		// punch right
+		/*
+		if (actors[i].mesh.rotation.x >= .22 && ) {
 			actors[i].remove();
 			delete actors[i];
 			actors.splice(i, 1);
 		}
+		*/
+		// if the character has moved past the near plane, deallocate them
+		if (actors[i].mesh.rotation.x >= .3) {
+			misses++; // tally a miss
+			actors[i].remove();
+			delete actors[i];
+			actors.splice(i, 1);
+		}
+
+		//displays hits / misses
 	}
 }
 

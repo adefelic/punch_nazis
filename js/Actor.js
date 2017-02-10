@@ -6,9 +6,9 @@ var Actor = function(mesh, render_order, scene) {
 	this.lateralSpeed = 0;
 	
 	// set initial position
-	this.mesh.position.z = 0;
 	this.mesh.rotation.x = .15;
-	this.mesh.geometry.translate(0, 100.8, 0); // so we can rotate around the origin
+	if (Math.random() > 0.5) this.mesh.rotation.y = 3.14;
+	this.mesh.geometry.translate(0, 100.5, 0); // so we can rotate around the origin
 	this.mesh.geometry.rotateZ((Math.random() - 0.5) * .05); // rotate laterally
 
 	// set initial lateral movement speed
